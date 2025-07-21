@@ -1,22 +1,29 @@
 using System;
+using Mirror;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(InputAction.CallbackContext))]
 public class PlayerTableMovement : MonoBehaviour
 {
-	private static int _playerIndex;
 
     [NonSerialized] public Vector2 GoalRotation;
+    [NonSerialized, ShowInInspector] public Position PlayerPosition;
     
     [SerializeField] private InputActionReference movement; 
-    
     [SerializeField] private float movementSpeed;
+    
+    [Header("Rotation parameters")]
+    [SerializeField] private Vector2 maxMovement;
+    [SerializeField] private float speedMovement;
     // [SerializeField] private TMP_Dropdown dropdown;
 
     private InputAction m_movementAction;
-    private Vector2[] m_transformationMatrix;
+    private Vector2[] m_transformationMatrix = {Vector2.zero, Vector2.zero };
     private Vector2 m_rawRotation;
+
+    private Transform m_playerVisualization;
+
     
     private void Awake()
     {
@@ -24,13 +31,24 @@ public class PlayerTableMovement : MonoBehaviour
 
         GetComponent<PlayerInput>().onActionTriggered += OnAction;
         
-        switch ((Position)_playerIndex)
+        // dropdown.onValueChanged.AddListener(delegate (int index)
+        // {
+        //     m_position = (Position)index;
+        // });
+    }
+    
+    public void Initialize(Position position, Transform playerVisualization)
+    {
+        PlayerPosition = position;
+        m_playerVisualization = playerVisualization;
+        
+        switch (PlayerPosition)
         {
             case Position.LeftDown:
                 m_transformationMatrix = new Vector2[]
                 {
                     new (-1, -1),
-                    new (-1, -1),
+                    new (-1, 1),
                 };
                 break;
             
@@ -58,13 +76,6 @@ public class PlayerTableMovement : MonoBehaviour
                 };
                 break;
         }
-        
-        _playerIndex++;
-
-        // dropdown.onValueChanged.AddListener(delegate (int index)
-        // {
-        //     m_position = (Position)index;
-        // });
     }
 
     private void FixedUpdate()
@@ -102,21 +113,31 @@ public class PlayerTableMovement : MonoBehaviour
         }*/
         
         GoalRotation = Vector2.Lerp(GoalRotation, rotation, movementSpeed);
+        
+        Quaternion goalQuaternionRotation = Quaternion.Euler(maxMovement.y * GoalRotation.y, 0, maxMovement.x * GoalRotation.x);
+        
+        m_playerVisualization.rotation = Quaternion.Lerp(m_playerVisualization.rotation, goalQuaternionRotation, speedMovement * Time.deltaTime);
     }
 
     private void OnAction(InputAction.CallbackContext context)
     {
         InputAction action = context.action;
-        if (action.Equals(m_movementAction))
+        if (action.id.Equals(m_movementAction.id))
         {
-            if(context.performed)
+            if (context.performed)
+            {
                 m_rawRotation = action.ReadValue<Vector2>();
-            else if(context.canceled)
+            }
+            else if (context.canceled)
+            {
                 m_rawRotation = Vector2.zero;
+            }
         }
     }
+
     
-    private enum Position
+    
+    public enum Position
     {
         LeftUp,
         LeftDown,

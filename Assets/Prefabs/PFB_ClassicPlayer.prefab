@@ -77,4 +77,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movement: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   movementSpeed: 0.3
-  dropdown: {fileID: 0}
+  maxMovement: {x: 45, y: 45}
+  speedMovement: 0.5
