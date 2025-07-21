@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class TableMovement : MonoBehaviour
 {
+    [SerializeField] private bool isVR;
     [SerializeField] private Rigidbody table;
     
     [Header("Rotation parameters")]
@@ -11,21 +13,26 @@ public class TableMovement : MonoBehaviour
     
     private List<PlayerTableMovement> m_players = new();
 
+    [NonSerialized] public Vector2 GoalRotation;
+
     private void FixedUpdate()
     {
         if(m_players.Count <= 0)
             return;
         
-        Vector2 goalRotation = Vector2.zero;
+        if(isVR)
+            return;
+        
+        GoalRotation = Vector2.zero;
 
         foreach (PlayerTableMovement player in m_players)
         {
-            goalRotation += player.GoalRotation;
+            GoalRotation += player.GoalRotation;
             //Debug.Log(player.GetInstanceID());
         }
 
-        goalRotation /= m_players.Count;
-        Quaternion goalQuaternionRotation = Quaternion.Euler(maxMovement.y * goalRotation.y, 0, maxMovement.x * goalRotation.x);
+        GoalRotation /= m_players.Count;
+        Quaternion goalQuaternionRotation = Quaternion.Euler(maxMovement.y * GoalRotation.y, 0, maxMovement.x * GoalRotation.x);
         
         table.MoveRotation(Quaternion.Lerp(table.rotation, goalQuaternionRotation, speedMovement * Time.deltaTime));
     }
