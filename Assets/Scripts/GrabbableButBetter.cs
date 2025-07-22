@@ -4,6 +4,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class GrabbableButBetter : MonoBehaviour
 {
+    [NonSerialized] public Vector2 UsableMovement;
+    
     [SerializeField] private float maxDistance;
     
     private Transform m_interactorTransform;
@@ -35,12 +37,17 @@ public class GrabbableButBetter : MonoBehaviour
         if (!m_isBeingGrabbed)
         {
             transform.position = m_awakePos;
+            UsableMovement = Vector2.zero;
             return;
         }
 
         Vector3 interactorMovement = -m_interactorStartPosition + m_interactorTransform.position;
 
         interactorMovement = interactorMovement.normalized * Math.Min(interactorMovement.magnitude, maxDistance);
+
+        Vector3 tempMovement = transform.TransformVector(interactorMovement);
+        UsableMovement = new Vector2(tempMovement.z, tempMovement.y);
+        
 
         transform.position = m_awakePos + interactorMovement;
     }

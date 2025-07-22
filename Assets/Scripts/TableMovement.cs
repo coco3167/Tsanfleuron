@@ -5,6 +5,7 @@ using UnityEngine;
 public class TableMovement : MonoBehaviour
 {
     [SerializeField] private bool isVR;
+    [SerializeField] private GrabbableButBetter[] grabbableBut;
     [SerializeField] private Rigidbody table;
     
     [Header("Rotation parameters")]
@@ -17,21 +18,32 @@ public class TableMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(m_players.Count <= 0)
-            return;
         
-        if(isVR)
-            return;
+
         
         GoalRotation = Vector2.zero;
 
-        foreach (PlayerTableMovement player in m_players)
+        if (isVR)
         {
-            GoalRotation += player.GoalRotation;
-            //Debug.Log(player.GetInstanceID());
+            foreach (GrabbableButBetter grabbable in grabbableBut)
+            {
+                GoalRotation += grabbable.UsableMovement;
+                Debug.Log(grabbable.UsableMovement);
+            }
+            GoalRotation /= grabbableBut.Length;
+        }
+        else
+        {
+            if(m_players.Count <= 0)
+                return;
+            foreach (PlayerTableMovement player in m_players)
+            {
+                GoalRotation += player.GoalRotation;
+                //Debug.Log(player.GetInstanceID());
+            }
+            GoalRotation /= m_players.Count;
         }
 
-        GoalRotation /= m_players.Count;
         Quaternion goalQuaternionRotation = Quaternion.Euler(maxMovement.y * GoalRotation.y, 0, maxMovement.x * GoalRotation.x);
         
         table.MoveRotation(Quaternion.Lerp(table.rotation, goalQuaternionRotation, speedMovement * Time.deltaTime));
